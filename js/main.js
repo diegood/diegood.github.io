@@ -35,7 +35,7 @@ function configurarlistners() {
             dialog.showModal()
         }else{
             listaProductos.push({ nombre: nombreProducto, cantidad: 1, precio:0 })
-            nombreProducto = null
+            document.getElementById('ingreso-producto').value = null
             renderLista()
         }
     })
