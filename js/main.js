@@ -99,5 +99,20 @@ function renderLista() {
 
 }
 
+function registrarServiceWorker(){
+    if('serviceWorker' in navigator){
+        window.addEventListener('load', () => {
+            this.navigator.serviceWorker.register('./sw.js').then(
+                (reg)=>{
+                    console.log('el Service worker se registro correctamente')
+                }
+            ).catch(()=>{
+                console.warn('Error al reguistar el Service worker')
+            })
+        })
+    }
+}
+
 renderLista()
 configurarlistners()
+registrarServiceWorker()
