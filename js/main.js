@@ -49,20 +49,45 @@ function configurarlistners() {
 
 
 function renderLista() {
-    let xhr = new XMLHttpRequest
-    xhr.open('get', 'plantatilla-lista.hbs')
-    xhr.send()
-    xhr.addEventListener('load', () =>{
-        if(xhr.status == 200){
-            let source = xhr.response
-            const template = Handlebars.compile(source)
-            let data = {"listaProductos" : listaProductos}
-            $('#lista').html(template(data))
-        
-            let ul = $('#contenedor-lista')
-            componentHandler.upgradeElements(ul);
-        }
+
+    $.get('plantatilla-lista.hbs', source =>{
+        const template = Handlebars.compile(source)
+        let data = {"listaProductos" : listaProductos}
+        $('#lista').html(template(data))
+    
+        let ul = $('#contenedor-lista')
+        componentHandler.upgradeElements(ul);
     })
+
+
+    // fetch('plantatilla-lista.hbs')
+    //     .then(res => res.text())
+    //     .then( source => {
+    //             console.log(source)
+    //             const template = Handlebars.compile(source)
+    //             let data = {"listaProductos" : listaProductos}
+    //             $('#lista').html(template(data))
+            
+    //             let ul = $('#contenedor-lista')
+    //             componentHandler.upgradeElements(ul);
+    //         }
+    //     )
+
+
+    // let xhr = new XMLHttpRequest
+    // xhr.open('get', 'plantatilla-lista.hbs')
+    // xhr.send()
+    // xhr.addEventListener('load', () =>{
+    //     if(xhr.status == 200){
+    //         let source = xhr.response
+    //         const template = Handlebars.compile(source)
+    //         let data = {"listaProductos" : listaProductos}
+    //         $('#lista').html(template(data))
+        
+    //         let ul = $('#contenedor-lista')
+    //         componentHandler.upgradeElements(ul);
+    //     }
+    // })
 
 }
 
