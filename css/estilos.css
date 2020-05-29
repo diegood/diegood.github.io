@@ -11,3 +11,9 @@
     align-items: center
 }
 .page-content{padding: 10px}
+img {
+    width: 100%;
+    border-radius: 20px;
+    margin-bottom: 2em;
+    max-height: 20em;
+}
