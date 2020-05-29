@@ -50,52 +50,21 @@ function configurarlistners() {
 
 
 function renderLista() {
-    if (crearLista) {
-        ul = document.createElement('ul')
-        ul.classList.add('demo-list-icon', 'mdl-list', 'w-100')
-        if (!dialog.showModal) {
-            dialogPolyfill.registerDialog(dialog);
+    let xhr = new XMLHttpRequest
+    xhr.open('get', 'plantatilla-lista.hbs')
+    xhr.send()
+    xhr.addEventListener('load', () =>{
+        if(xhr.status == 200){
+            let source = xhr.response
+            const template = Handlebars.compile(source)
+            let data = {"listaProductos" : listaProductos}
+            let lista = document.getElementById('lista')
+            lista.innerHTML = template(data)
+        
+            let ul = document.getElementById('contenedor-lista')
+            componentHandler.upgradeElements(ul);
         }
-    }
-
-    ul.innerHTML = ''
-    listaProductos.forEach((p, index) => {
-        ul.innerHTML +=
-            `
-                <li class="mdl-list__item w-100" >
-                    <span class="mdl-list__item-primary-content w-10">
-                        <i class="material-icons">shopping_cart</i>
-                    </span>
-                    <span class="mdl-list__item-primary-content w-30">
-                        ${p.nombre}
-                    </span>
-                    <span class="mdl-list__item-primary-content w-30">
-                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <input type="number" class="mdl-textfield__input" type="text" onchange="cambiarCantidad(${index}, this)" id="input-cantidad-${index}">
-                            <label class="mdl-textfield__label" for="input-cantidad-${index}">${p.cantidad}</label>
-                        </div>
-                    </span>
-                    <span class="mdl-list__item-primary-content w-20 ml-item">
-                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <input type="number class="mdl-textfield__input" type="text" onchange="cambiarPrecio(${index}, this)" id="input-precio-${index}">
-                            <label class="mdl-textfield__label" for="input-precio-${index}">${p.precio}</label>
-                        </div>
-                    </span>
-                    <span class="mdl-list__item-primary-content w-10">
-                        <button onclick="borrarProducto(${index})" class="mdl-button mdl-js-button mdl-js-ripple-effect">
-                            <i class="material-icons">delete</i>
-                        </button>
-                    </span>
-                </li>
-            `
     })
-
-    if (crearLista) {
-        document.getElementById('lista').appendChild(ul)
-    } else {
-        componentHandler.upgradeElements(ul);
-    }
-    crearLista = false
 
 }
 
