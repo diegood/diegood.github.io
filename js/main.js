@@ -9,6 +9,19 @@ let listaProductos = [
     // { nombre: 'Fideos', cantidad: 4, precio: 78.34 }
 ]
 
+function guardarListaProductosLocal(lista){
+    let productos = JSON.stringify(lista)
+    localStorage.setItem('lista', productos)
+}
+
+function leerListaProductosLocal(){
+    let lista = []
+    if(localStorage.getItem('lista')){
+        lista = JSON.parse(localStorage.getItem('lista'))
+    }
+    return lista
+}
+
 function getURL(){
     return 'https://5ed19a894e6d7200163a0a2b.mockapi.io/lista/'
 }
@@ -19,29 +32,74 @@ function getProdWeb(callBack){
     .then(callBack)
     .catch(e => {
         console.log(e)
-        callBack(listaProductos)
+        callBack(leerListaProductosLocal())
     })
 }
 
 
+function deleteProductoApi(id, callBack){
+    let url = getURL()+id
+    $.ajax({url: url, method: 'delete' })
+    .then(callBack)
+    .catch(e => {
+        console.log(e)
+        callBack()
+    })
+}
+function updateProductoApi(id, producto, callBack){
+    let url = getURL()+id
+    $.ajax({url: url, data: producto  ,method: 'put' })
+    .then(callBack)
+    .catch(e => {
+        console.log(e)
+        callBack()
+    })
+}
+
+function addProductoApi( producto, callBack){
+    let url = getURL()
+    $.ajax({url: url, data: producto  ,method: 'post' })
+    .then(callBack)
+    .catch(e => {
+        console.log(e)
+        callBack()
+    })
+}
 
 
-
-function borrarProducto(index) {
+function borrarProducto(id) {
     console.log(listaProductos);
-    listaProductos.splice(index, 1);
-    renderLista()
-}
-function cambiarCantidad(index, e) {
-    let cantidad = Number(e.val())
-    listaProductos[index].cantidad = cantidad
-    renderLista()
+    deleteProductoApi(id, prod =>{
+        renderLista()
+        console.log('delete:', prod)
+    })
+    // listaProductos.splice(index, 1);
 }
 
-function cambiarPrecio(index, e) {
-    let precio = Number(e.val())
+
+function cambiarCantidad(id, e) {
+    let cantidad = Number( $(e).val())
+    let index = listaProductos.findIndex(p => p.id == id)
+
+    listaProductos[index].cantidad = cantidad
+    let producto = listaProductos[index]
+
+    updateProductoApi(id, producto, ()=>{
+        console.log('update cantidad', producto)
+        renderLista()
+    })
+}
+
+function cambiarPrecio(id, e) {
+    let precio = $(e).val()
+    let index = listaProductos.findIndex(p => p.id == id)
     listaProductos[index].precio = precio
-    renderLista()
+    let producto = listaProductos[index]
+    
+    updateProductoApi(id, producto, ()=>{
+        console.log('update cantidad', producto)
+        renderLista()
+    })
 }
 
 
@@ -52,18 +110,36 @@ function configurarlistners() {
         if(!nombreProducto){
             dialog.showModal()
         }else{
-            listaProductos.push({ nombre: nombreProducto, cantidad: 1, precio:0 })
+            // listaProductos.push({ nombre: nombreProducto, cantidad: 1, precio:0 })
+            let producto = { nombre: nombreProducto, cantidad: 1, precio:0 }
+            addProductoApi(producto, prod =>{
+                console.log(prod)
+            })
             $('#ingreso-producto').val(null)
             renderLista()
         }
     })
     $('#btn-borrar-lista').click(() => {
-        listaProductos = []
-        renderLista()
+        deleteAllProductos(info => {
+            console.log(info)
+            renderLista()
+        })
     })
     dialog.querySelector('.close').click( function () {
         dialog.close();
     });
+}
+
+async function deleteAllProductos(callBack){
+    await listaProductos.forEach(async (prod)=>{
+        try {
+            let p = await $.ajax({url: getURL()+ prod.id, method: 'delete'})
+            console.log('producto borrado', p)
+        } catch (error) {
+            callBack(error)
+        }
+    })
+    callBack('ok')
 }
 
 
@@ -75,6 +151,7 @@ function renderLista() {
 
         getProdWeb(productos =>{
             listaProductos = productos
+            guardarListaProductosLocal(listaProductos)
             let data = {"listaProductos" : listaProductos}
             $('#lista').html(template(data))
         
