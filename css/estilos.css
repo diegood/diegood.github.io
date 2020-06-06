@@ -17,3 +17,10 @@ img {
     margin-bottom: 2em;
     max-height: 20em;
 }
+.mdl-textfield__label{
+    color: rgba(0,0,0,.6);
+}
+progress{
+    width: 100%;
+    display: none;
+}

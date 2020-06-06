@@ -1,4 +1,4 @@
-console.log('inicia la app')
+
 
 let dialog = document.querySelector('dialog');
 let crearLista = true
@@ -22,54 +22,9 @@ function leerListaProductosLocal(){
     return lista
 }
 
-function getURL(){
-    return 'https://5ed19a894e6d7200163a0a2b.mockapi.io/lista/'
-}
-
-function getProdWeb(callBack){
-    let url = getURL()+'?'+Date.now()
-    $.ajax({url: url, method: 'get' })
-    .then(callBack)
-    .catch(e => {
-        console.log(e)
-        callBack(leerListaProductosLocal())
-    })
-}
-
-
-function deleteProductoApi(id, callBack){
-    let url = getURL()+id
-    $.ajax({url: url, method: 'delete' })
-    .then(callBack)
-    .catch(e => {
-        console.log(e)
-        callBack()
-    })
-}
-function updateProductoApi(id, producto, callBack){
-    let url = getURL()+id
-    $.ajax({url: url, data: producto  ,method: 'put' })
-    .then(callBack)
-    .catch(e => {
-        console.log(e)
-        callBack()
-    })
-}
-
-function addProductoApi( producto, callBack){
-    let url = getURL()
-    $.ajax({url: url, data: producto  ,method: 'post' })
-    .then(callBack)
-    .catch(e => {
-        console.log(e)
-        callBack()
-    })
-}
-
-
 function borrarProducto(id) {
     console.log(listaProductos);
-    deleteProductoApi(id, prod =>{
+    api.deleteProductoApi(id, prod =>{
         renderLista()
         console.log('delete:', prod)
     })
@@ -84,7 +39,7 @@ function cambiarCantidad(id, e) {
     listaProductos[index].cantidad = cantidad
     let producto = listaProductos[index]
 
-    updateProductoApi(id, producto, ()=>{
+    api.updateProductoApi(id, producto, ()=>{
         console.log('update cantidad', producto)
         renderLista()
     })
@@ -96,7 +51,7 @@ function cambiarPrecio(id, e) {
     listaProductos[index].precio = precio
     let producto = listaProductos[index]
     
-    updateProductoApi(id, producto, ()=>{
+    api.updateProductoApi(id, producto, ()=>{
         console.log('update cantidad', producto)
         renderLista()
     })
@@ -112,7 +67,7 @@ function configurarlistners() {
         }else{
             // listaProductos.push({ nombre: nombreProducto, cantidad: 1, precio:0 })
             let producto = { nombre: nombreProducto, cantidad: 1, precio:0 }
-            addProductoApi(producto, prod =>{
+            api.addProductoApi(producto, prod =>{
                 console.log(prod)
             })
             $('#ingreso-producto').val(null)
@@ -120,7 +75,7 @@ function configurarlistners() {
         }
     })
     $('#btn-borrar-lista').click(() => {
-        deleteAllProductos(info => {
+        api.deleteAllProductos(info => {
             console.log(info)
             renderLista()
         })
@@ -130,17 +85,7 @@ function configurarlistners() {
     });
 }
 
-async function deleteAllProductos(callBack){
-    await listaProductos.forEach(async (prod)=>{
-        try {
-            let p = await $.ajax({url: getURL()+ prod.id, method: 'delete'})
-            console.log('producto borrado', p)
-        } catch (error) {
-            callBack(error)
-        }
-    })
-    callBack('ok')
-}
+
 
 
 function renderLista() {
@@ -149,7 +94,7 @@ function renderLista() {
     .then(source =>{
         const template = Handlebars.compile(source)
 
-        getProdWeb(productos =>{
+        api.getProdWeb(productos =>{
             listaProductos = productos
             guardarListaProductosLocal(listaProductos)
             let data = {"listaProductos" : listaProductos}
@@ -164,16 +109,29 @@ function renderLista() {
 }
 
 function registrarServiceWorker(){
-    if('serviceWorker' in navigator){
-        window.addEventListener('load', () => {
-            this.navigator.serviceWorker.register('./sw.js').then(
-                (reg)=>{
-                    console.log('el Service worker se registro correctamente')
-                }
-            ).catch(()=>{
-                console.warn('Error al reguistar el Service worker')
+    if(window.caches){
+        if('serviceWorker' in navigator){
+            window.addEventListener('load', () => {
+                this.navigator.serviceWorker.register('./sw.js').then(
+                    (reg)=>{
+                        console.log('el Service worker se registro correctamente')
+                        reg.onupdatefound= () =>{
+                            const installingWorker = reg.installin
+                            installingWorker.onstatechange = () =>{
+                                if(installingWorker.state == 'activated' && this.navigator.serviceWorker.controller){
+                                    this.console.log('REINICIANDO');
+                                    this.setTimeout(() => {
+                                        this.location.reload()
+                                    }, 1000);
+                                }
+                            }
+                        }
+                    }
+                ).catch(()=>{
+                    console.warn('Error al reguistar el Service worker')
+                })
             })
-        })
+        }
     }
 }
 
@@ -181,6 +139,37 @@ function start(){
     renderLista()
     configurarlistners()
     registrarServiceWorker()
+    // pruebaCache()
 }
 
 $(document).ready(start)
+
+// Prueba cache storage
+
+function pruebaCache(){
+    if(window.caches){
+        caches.open('prueba-1');
+        caches.open('prueba-2');
+        caches.open('prueba-3');
+        // caches.has('prueba-3').then(console.log)
+        caches.delete('prueba-1').then(console.log)
+        caches.keys().then(console.log)
+        caches.open('prueba-v1.1').then(cache =>{
+            // cache.add('index.html')
+            cache.addAll([
+                'index.html', 'css/estilos.css', 'images/super.jpg'
+            ]).then(()=>{
+                console.log('recursos agregados')
+                cache.delete('css/estilos.css')
+                cache.match('index.html').then(res =>{
+                    if(res){
+                        // res.text().then(console.log)
+                    }
+                })
+            });
+
+            cache.put('index.html', new Response('holaaa'))
+            cache.keys().then(console.log)
+        })
+    }
+}
