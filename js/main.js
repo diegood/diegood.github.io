@@ -110,11 +110,22 @@ function renderLista() {
 
 function registrarServiceWorker(){
     if(window.caches){
-        if('serviceWorker' in navigator){
+        if('serviceWorker' in navigator && 'PushManager' in window){
             window.addEventListener('load', () => {
+
                 this.navigator.serviceWorker.register('./sw.js').then(
                     (reg)=>{
                         console.log('el Service worker se registro correctamente')
+                        
+                        initialiseUI(reg)
+                        // Habilito notificaciones
+                        Notification.requestPermission(function(res){
+                            if(res == 'granted'){
+                                navigator.serviceWorker.ready.then(function(r){
+                                    console.log(r)
+                                })
+                            }
+                        })
                         reg.onupdatefound= () =>{
                             const installingWorker = reg.installin
                             installingWorker.onstatechange = () =>{
@@ -131,7 +142,11 @@ function registrarServiceWorker(){
                     console.warn('Error al reguistar el Service worker')
                 })
             })
+        }else{
+            console.error('no soporta o push o service worker')
         }
+    }else{
+        console.error('no soporta caches')
     }
 }
 

@@ -34,14 +34,14 @@ self.addEventListener('install', e=> {
 
 
 self.addEventListener('activate', e => {
-    console.log('se activo', e)
+    // console.log('se activo', e)
 
     const cacheWhiteList = [CACHE_STATIC_NAME, CACHE_INMUTABLE_NAME, CACHE_DYNAMIC_NAME]
     e.waitUntil(
         caches.keys().then(keys=>{
             return Promise.all(
                 keys.map(cacheName =>{
-                    console.log(cacheName)
+                    // console.log(cacheName)
                     if(!cacheWhiteList.includes(cacheName)){return caches.delete(cacheName)}
                 })
             )
@@ -53,10 +53,10 @@ self.addEventListener('fetch', e => {
     if(e.request.method == 'GET' && !e.request.url.includes('api')){
         const respuesta = caches.match(e.request).then(res =>{
             if(res){
-                console.log('existe en el cache:', e.request.url)
+                // console.log('existe en el cache:', e.request.url)
                 return res
             }
-            console.log('NO existe en el cache:', e.request.url)
+            // console.log('NO existe en el cache:', e.request.url)
             return fetch(e.request).then(newResouce => {
                 caches.open(CACHE_DYNAMIC_NAME).then(cache=>{
                     cache.put(e.request, newResouce)
@@ -104,21 +104,22 @@ self.addEventListener('fetch', e => {
 
 })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification
 self.addEventListener('push', e => {
-    console.log('mandaron una push', e)
+    let msg = e.data.text()
+    console.log(msg);
+    const title = "lista loca";
+    const options = {
+        body: `Mensaje: ${msg}`,
+        icon: '/images/icons/icon-72x72.png',
+        badge: ''
+    }
+    e.waitUntil(self.registration.showNotification(title, options));
 
+})
+
+self.addEventListener('notificationclick', e=>{
+    console.log('Click en la notificacion', e);
+    e.notification.close();
+    e.waitUntil(clients.openWindow('https://www.mevoyalamierda.com'));
 })
