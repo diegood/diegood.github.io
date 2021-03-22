@@ -2,12 +2,7 @@
 
 let dialog = document.querySelector('dialog');
 let crearLista = true
-let listaProductos = [
-    // { nombre: 'Pan', cantidad: 2, precio: 12.34 },
-    // { nombre: 'Carne', cantidad: 3, precio: 54.13 },
-    // { nombre: 'Leche', cantidad: 4, precio: 22.32 },
-    // { nombre: 'Fideos', cantidad: 4, precio: 78.34 }
-]
+let listaProductos = []
 
 function guardarListaProductosLocal(lista){
     let productos = JSON.stringify(lista)
